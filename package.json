@@ -6,8 +6,7 @@
     "scripts": {
         "dev": "vite --port 9002 --host 0.0.0.0",
         "build": "tsc && vite build",
-        "lint": "eslint . --report-unused-disable-directives --max-warnings 50",
-        "preview": "vite preview"
+        "preview": "vite preview --port 8080 --host 0.0.0.0"
     },
     "dependencies": {
         "@hookform/resolvers": "^4.1.3",

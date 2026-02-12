@@ -1,0 +1,8 @@
+kind: "AppHostingYaml"
+version: "v1"
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+scripts:
+  build: "npm run build"
+  run: "npm run preview"
