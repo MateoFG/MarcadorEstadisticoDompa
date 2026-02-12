@@ -1,6 +1,6 @@
 
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,26 +16,23 @@ interface HistoryScreenProps {
 
 export default function HistoryScreen({ onSelectMatch, onBack }: HistoryScreenProps) {
   const { t } = useTranslation();
-  const [matches, setMatches] = useState<MatchData[]>([]);
+  const [matches, setMatches] = useState<MatchData[]>(() => getCompletedMatches());
   const [dialogConfig, setDialogConfig] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
 
-  useEffect(() => {
-    const loadedMatches = getCompletedMatches();
-    setMatches(loadedMatches);
-  }, []);
-  
+  // Removiendo useEffect anterior para inicializar directamente en el estado
+
   const handleSelect = (matchId: string) => {
     const match = loadMatchData(matchId);
-    if(match) {
-        onSelectMatch(match)
+    if (match) {
+      onSelectMatch(match)
     }
   }
-  
+
   const handleDelete = useCallback((matchId: string) => {
-     deleteCompletedMatch(matchId);
-     setMatches(prev => prev.filter(m => m.matchId !== matchId));
+    deleteCompletedMatch(matchId);
+    setMatches(prev => prev.filter(m => m.matchId !== matchId));
   }, []);
-  
+
   const openDeleteDialog = (match: MatchData) => {
     setDialogConfig({
       title: t('deleteMatchConfirmation.title'),
@@ -52,14 +49,14 @@ export default function HistoryScreen({ onSelectMatch, onBack }: HistoryScreenPr
         <CardHeader>
           <div className='flex items-center justify-between'>
             <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
-                <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1 text-center">
-                <CardTitle className="text-xl sm:text-2xl font-headline flex items-center justify-center gap-2">
-                    <History className="w-6 h-6" />
-                    {t('matchHistory')}
-                </CardTitle>
-                <CardDescription>{t('viewCompletedMatches')}</CardDescription>
+              <CardTitle className="text-xl sm:text-2xl font-headline flex items-center justify-center gap-2">
+                <History className="w-6 h-6" />
+                {t('matchHistory')}
+              </CardTitle>
+              <CardDescription>{t('viewCompletedMatches')}</CardDescription>
             </div>
             <div className='w-10'></div> {/* Spacer */}
           </div>
@@ -72,7 +69,7 @@ export default function HistoryScreen({ onSelectMatch, onBack }: HistoryScreenPr
                   <div className="flex-1 cursor-pointer" onClick={() => handleSelect(match.matchId)}>
                     <p className="font-semibold">{match.teamNames.own} vs {match.teamNames.rival}</p>
                     <p className="text-sm text-muted-foreground">
-                        {new Date(match.date).toLocaleDateString()} - {t('finalScore')}: {match.setsWon.own} - {match.setsWon.rival}
+                      {new Date(match.date).toLocaleDateString()} - {t('finalScore')}: {match.setsWon.own} - {match.setsWon.rival}
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" className="text-destructive" onClick={() => openDeleteDialog(match)}>
@@ -86,17 +83,17 @@ export default function HistoryScreen({ onSelectMatch, onBack }: HistoryScreenPr
           )}
         </CardContent>
       </Card>
-      
+
       {dialogConfig && (
         <ConfirmationDialog
-            open={!!dialogConfig}
-            onOpenChange={(open) => !open && closeDialog()}
-            title={dialogConfig.title}
-            description={dialogConfig.description}
-            onConfirm={() => {
-                dialogConfig.onConfirm();
-                closeDialog();
-            }}
+          open={!!dialogConfig}
+          onOpenChange={(open) => !open && closeDialog()}
+          title={dialogConfig.title}
+          description={dialogConfig.description}
+          onConfirm={() => {
+            dialogConfig.onConfirm();
+            closeDialog();
+          }}
         />
       )}
     </>

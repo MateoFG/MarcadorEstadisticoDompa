@@ -6,7 +6,6 @@ import {
     PointType,
     PointCategory,
     ViewState,
-    DialogConfig,
     TeamColors
 } from '@/lib/types';
 import {
@@ -212,7 +211,7 @@ export function useMatchState() {
                 currentRotation: prevData.startingRotations[prevData.currentSet] || { own: 1, rival: 1 }
             };
         });
-    }, [canEndSet, currentSetScore, currentSetPointCounts, toast, matchData.teamNames, t]);
+    }, [canEndSet, currentSetScore, currentSetPointCounts, toast, t]);
 
 
 

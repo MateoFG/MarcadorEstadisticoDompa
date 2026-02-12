@@ -92,7 +92,7 @@ export const loadMatchData = (matchId: string): MatchData | null => {
     if (serializedData === null) {
       return null;
     }
-    let parsedData = JSON.parse(serializedData) as MatchData;
+    const parsedData = JSON.parse(serializedData) as MatchData;
 
     // --- Data migration for backward compatibility ---
 
@@ -102,11 +102,12 @@ export const loadMatchData = (matchId: string): MatchData | null => {
     }
 
     // Convert old point log format (string[]) to new format (PointLog[])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const migratePointLog = (log: any[]): PointLog[] => {
       if (log && log.length > 0 && typeof log[0] === 'string') {
         return log.map((type: string) => ({ type, category: 'OTRO' } as PointLog));
       }
-      return log || [];
+      return (log as PointLog[]) || [];
     };
 
     parsedData.currentSetPointsLog = migratePointLog(parsedData.currentSetPointsLog);

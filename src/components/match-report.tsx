@@ -1,13 +1,10 @@
-
-
 import { useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, PlusCircle, Trophy, Download, Save, CheckCircle } from "lucide-react";
-import type { MatchData, PointType, PointCategory, PointCounts } from "@/lib/types";
+import type { MatchData, PointType, PointCategory, PointCounts, SetReport } from "@/lib/types";
 import { Separator } from './ui/separator';
-import { useViewMode } from '@/components/view-mode-provider';
 import Puntograma from './puntograma';
 import { SetDetails } from './report/set-details';
 
@@ -22,7 +19,6 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
   const { t } = useTranslation();
   const reportRef = useRef<HTMLDivElement>(null);
   const winner = matchData.setsWon.own > matchData.setsWon.rival ? matchData.teamNames.own : matchData.teamNames.rival;
-  const { viewMode } = useViewMode();
 
   const partialScores = useMemo(() => {
     return matchData.matchHistory.map(set => `${set.finalScore.own}-${set.finalScore.rival}`).join(', ');
@@ -32,9 +28,7 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
     const totalPointCounts: PointCounts = { PPM: 0, PRE: 0, PPE: 0, PRM: 0 };
     let totalOwnSideoutChances = 0, totalOwnSideouts = 0, totalRivalSideoutChances = 0, totalRivalSideouts = 0;
     let totalOwnBreakPoints = 0, totalRivalBreakPoints = 0;
-    let totalOwnServePoints = 0, totalRivalServePoints = 0;
     let totalOwnServeRotations = 0, totalRivalServeRotations = 0;
-
 
     matchData.matchHistory.forEach(set => {
       totalPointCounts.PPM += set.pointCounts.PPM;
@@ -60,8 +54,6 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
 
       if (set.pointsPerServe) {
         if (set.pointsPerServe.own > 0) {
-          const setOwnPoints = set.pointCounts.PPM + set.pointCounts.PRE;
-          totalOwnServePoints += setOwnPoints;
           const rotations = set.pointLog.filter((p, i) => {
             if (i === 0) return matchData.firstServeBy[set.setNumber - 1] === 'own';
             const prevPointWinner = (set.pointLog[i - 1].type === 'PPM' || set.pointLog[i - 1].type === 'PRE') ? 'own' : 'rival';
@@ -70,8 +62,6 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
           totalOwnServeRotations += rotations > 0 ? rotations : (matchData.firstServeBy[set.setNumber - 1] === 'own' ? 1 : 0);
         }
         if (set.pointsPerServe.rival > 0) {
-          const setRivalPoints = set.pointCounts.PPE + set.pointCounts.PRM;
-          totalRivalServePoints += setRivalPoints;
           const rotations = set.pointLog.filter((p, i) => {
             if (i === 0) return matchData.firstServeBy[set.setNumber - 1] === 'rival';
             const prevPointWinner = (set.pointLog[i - 1].type === 'PPM' || set.pointLog[i - 1].type === 'PRE') ? 'own' : 'rival';
@@ -89,11 +79,11 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
     const totalRivalEfficiency = totalRivalPointsActions > 0 ? (totalPointCounts.PRM - totalPointCounts.PRE) / totalRivalPointsActions : 0;
 
     return {
-      setNumber: 0, // Not applicable for total
-      finalScore: { own: matchData.setsWon.own, rival: matchData.setsWon.rival }, // Here it represents sets won
+      setNumber: 0,
+      finalScore: { own: matchData.setsWon.own, rival: matchData.setsWon.rival },
       pointCounts: totalPointCounts,
       ownEfficiency: totalOwnEfficiency,
-      rivalErrorImpact: 1 - totalRivalEfficiency, // This seems to be how it's used in the grid
+      rivalErrorImpact: 1 - totalRivalEfficiency,
       pointLog: matchData.matchHistory.flatMap(set => set.pointLog || []),
       sideoutPercentage: {
         own: totalOwnSideoutChances > 0 ? totalOwnSideouts / totalOwnSideoutChances : 0,
@@ -118,8 +108,6 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
     }
 
     const clone = container.cloneNode(true) as HTMLElement;
-
-    // Remove elements that should not be in the export
     clone.querySelectorAll('.no-export').forEach(el => el.remove());
 
     const styles = Array.from(document.styleSheets)
@@ -128,8 +116,7 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
           return Array.from(sheet.cssRules)
             .map(rule => rule.cssText)
             .join('\n');
-        } catch (e) {
-          // Prevent CORS issues with external stylesheets
+        } catch {
           if (sheet.href) {
             return `@import url(${sheet.href});`;
           }
@@ -138,32 +125,29 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
       })
       .join('\n');
 
-    // Get the main HTML element classes (for dark/light theme)
     const htmlElementClasses = document.documentElement.className;
 
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html lang="es" class="${htmlElementClasses}">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${t('matchReportTitle', { own: matchData.teamNames.own, rival: matchData.teamNames.rival })}</title>
-        <style>
-          @media print {
-            body { -webkit-print-color-adjust: exact; color-adjust: exact; }
-          }
-          body {
-            background-color: hsl(var(--background));
-            font-family: 'Inter', sans-serif;
-          }
-          ${styles}
-        </style>
-      </head>
-      <body class="p-4 sm:p-8">
-        ${clone.outerHTML}
-      </body>
-      </html>
-    `;
+    const fullHtml = `<!DOCTYPE html>
+<html lang="es" class="${htmlElementClasses}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${t('matchReportTitle', { own: matchData.teamNames.own, rival: matchData.teamNames.rival })}</title>
+  <style>
+    @media print {
+      body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+    }
+    body {
+      background-color: hsl(var(--background));
+      font-family: 'Inter', sans-serif;
+    }
+    ${styles}
+  </style>
+</head>
+<body class="p-4 sm:p-8">
+  ${clone.outerHTML}
+</body>
+</html>`;
 
     const blob = new Blob([fullHtml], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -213,7 +197,7 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
                 <SetDetails
                   title={t('fullMatch').toUpperCase()}
                   score={totalMatchStats.finalScore}
-                  stats={totalMatchStats as any}
+                  stats={totalMatchStats as unknown as SetReport}
                   pointLog={totalMatchStats.pointLog}
                   teamNames={matchData.teamNames}
                   teamColors={matchData.teamColors}
@@ -274,8 +258,7 @@ export default function MatchReport({ matchData, isMatchSaved, onSaveMatch, onSt
             <Save className="w-4 h-4" />
             {t('saveMatch')}
           </Button>
-        )
-        }
+        )}
         <Button onClick={handleExportToHtml} variant="outline" className="w-full sm:w-auto flex-1 gap-2 no-export">
           <Download className="w-4 h-4" />
           {t('exportHTML')}
