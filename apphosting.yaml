@@ -3,7 +3,14 @@ version: "v1"
 runConfig:
   cpu: 1
   memoryMiB: 512
+  # Especificar que los archivos estáticos están en dist/
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 10
 scripts:
   # Forzamos la instalación con legacy-peer-deps para evitar los errores de ESLint en la nube
   build: "npm install --legacy-peer-deps && npm run build"
   run: "npm start"
+# IMPORTANTE: En App Hosting, debemos especificar dónde están los assets estáticos
+staticAssets:
+  directory: "dist"
