@@ -12,5 +12,18 @@ export default defineConfig({
     server: {
         port: 9002,
         host: '0.0.0.0'
-    }
+    },
+    build: {
+        sourcemap: false,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'react-router-dom'],
+                    ui: ['lucide-react', '@radix-ui/react-slot'],
+                    charts: ['recharts'],
+                    libs: ['date-fns', 'uuid', 'zod', 'clsx', 'tailwind-merge', 'i18next', 'react-i18next'],
+                },
+            },
+        },
+    },
 })
