@@ -3,6 +3,9 @@
     "private": true,
     "version": "0.1.0",
     "type": "module",
+    "engines": {
+        "node": ">=18"
+    },
     "scripts": {
         "dev": "vite --port 9002 --host 0.0.0.0",
         "build": "tsc && vite build",
@@ -37,7 +40,7 @@
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
         "embla-carousel-react": "^8.6.0",
-        "express": "^5.2.1",
+        "express": "^4.22.1",
         "firebase": "^12.9.0",
         "i18next": "^23.11.5",
         "i18next-browser-languagedetector": "^7.2.1",
