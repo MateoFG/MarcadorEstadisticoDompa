@@ -6,7 +6,8 @@ import {
     PointType,
     PointCategory,
     ViewState,
-    TeamColors
+    TeamColors,
+    SetReport
 } from '@/lib/types';
 import {
     loadMatchData,
@@ -45,11 +46,24 @@ export function useMatchState() {
     });
 
     const [viewState, setViewState] = useState<ViewState>(() => {
-        if (matchData.matchId !== 'initial-id') { // If we loaded something
+        // Solo restaurar el estado del partido si hay un partido ACTIVAMENTE en marcha
+        if (matchData.matchId !== 'initial-id') {
+            // Si el partido está terminado, ir al reporte
             if (matchData.isMatchOver) return 'report';
-            if (matchData.firstServeBy.length > 0 && matchData.firstServeBy[matchData.currentSet - 1]) return 'match';
-            return 'serving';
+
+            // Solo continuar con el partido si tiene puntos registrados
+            const hasActivePoints = matchData.currentSetPointsLog.length > 0 ||
+                matchData.matchHistory.some((set: SetReport) => set.pointLog.length > 0);
+
+            if (hasActivePoints) {
+                // Si ya hay puntos, determinar el estado correcto
+                if (matchData.firstServeBy.length > 0 && matchData.firstServeBy[matchData.currentSet - 1]) {
+                    return 'match';
+                }
+                return 'serving';
+            }
         }
+        // Por defecto, SIEMPRE empezar en la pantalla de configuración
         return 'start';
     });
 
