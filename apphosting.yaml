@@ -5,4 +5,4 @@ runConfig:
   memoryMiB: 512
 scripts:
   build: "npm run build"
-  run: "npm run preview"
+  run: "npm start"
