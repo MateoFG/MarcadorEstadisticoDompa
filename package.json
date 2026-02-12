@@ -9,7 +9,7 @@
     "scripts": {
         "dev": "vite --port 9002 --host 0.0.0.0",
         "build": "tsc && vite build",
-        "start": "node server.js",
+        "start": "node server.cjs",
         "lint": "eslint . --report-unused-disable-directives --max-warnings 50",
         "preview": "vite preview"
     },

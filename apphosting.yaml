@@ -4,5 +4,6 @@ runConfig:
   cpu: 1
   memoryMiB: 512
 scripts:
-  build: "npm run build"
+  # Forzamos la instalación con legacy-peer-deps para evitar los errores de ESLint en la nube
+  build: "npm install --legacy-peer-deps && npm run build"
   run: "npm start"
