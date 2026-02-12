@@ -35,3 +35,6 @@ coverage
 # Firebase
 .firebase/
 firebase-debug.log
+
+# Firebase Service Account
+*-firebase-adminsdk-*.json
